@@ -94,30 +94,6 @@ def strace_version():
 
 
 @mcp.tool
-def bpftrace_list_all():
-    """List all available bpftrace probes by running `sudo bpftrace -l`.
-
-    This assumes passwordless sudo for bpftrace has been configured (e.g.
-    via your `setup.sh`). The function returns the combined stdout/stderr
-    output or a helpful error message if the command cannot be run.
-    """
-    try:
-        result = subprocess.run(["sudo", "bpftrace", "-l"], capture_output=True, text=True)
-        output = (result.stdout or "") + (result.stderr or "")
-        if output.strip():
-            return output
-
-        if result.returncode != 0:
-            return f"bpftrace exited with return code {result.returncode}. Stderr: {result.stderr}"
-
-        return "bpftrace executed but produced no output."
-    except FileNotFoundError:
-        return "Error: 'bpftrace' command not found. Please ensure bpftrace is installed and in your PATH."
-    except Exception as e:
-        return f"Unexpected error while running bpftrace: {str(e)}"
-
-
-@mcp.tool
 def ftrace_help():
     """Returns the help text for `ftrace -h`.
 
@@ -175,6 +151,50 @@ def bpftrace_version():
     except Exception as e:
         return f"An unexpected error occurred: {str(e)}"
 
+
+@mcp.tool
+def bpftrace_list_all():
+    """List all available bpftrace probes by running `sudo bpftrace -l`.
+
+    This assumes passwordless sudo for bpftrace has been configured (e.g.
+    via your `setup.sh`). The function returns the combined stdout/stderr
+    output or a helpful error message if the command cannot be run.
+    """
+    try:
+        result = subprocess.run(["sudo", "bpftrace", "-l"], capture_output=True, text=True)
+        output = (result.stdout or "") + (result.stderr or "")
+        if output.strip():
+            return output
+
+        if result.returncode != 0:
+            return f"bpftrace exited with return code {result.returncode}. Stderr: {result.stderr}"
+
+        return "bpftrace executed but produced no output."
+    except FileNotFoundError:
+        return "Error: 'bpftrace' command not found. Please ensure bpftrace is installed and in your PATH."
+    except Exception as e:
+        return f"Unexpected error while running bpftrace: {str(e)}"
+
+
+@mcp.tool
+def bpftrace_help():
+    """Returns the help text for `sudo bpftrace -h`.
+
+    Runs `sudo bpftrace -h` (assumes passwordless sudo is configured via
+    `setup.sh`). Captures stdout and stderr, and returns any text produced.
+    """
+    try:
+        result = subprocess.run(["sudo", "bpftrace", "-h"], capture_output=True, text=True)
+        output = (result.stdout or "") + (result.stderr or "")
+        if output.strip():
+            return output
+        if result.returncode != 0:
+            return f"bpftrace -h exited with return code {result.returncode}. Stderr: {result.stderr}"
+        return "bpftrace -h executed but produced no output."
+    except FileNotFoundError:
+        return "Error: 'bpftrace' command not found. Please ensure bpftrace is installed and in your PATH."
+    except Exception as e:
+        return f"Unexpected error while running bpftrace -h: {str(e)}"
 
 # --- Main Execution ---
 
