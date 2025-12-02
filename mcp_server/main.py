@@ -270,6 +270,46 @@ def exec_bpftrace_tool(tool_name: str, args: list[str] = None, timeout: int = 30
     except Exception as e:
         return {"error": f"Unexpected error: {str(e)}"}
 
+
+@mcp.tool
+def read_bpftrace_tool(readme_name: str = None):
+    """Read a README file from the `mcp_server/tools` directory.
+
+    - If `readme_name` is provided, attempt to read that path (relative to the tools dir).
+    - If not provided, try a set of common README filenames.
+
+    Security:
+    - Only files inside the `mcp_server/tools` directory are allowed (prevents path traversal).
+    Returns a dict with `path` and `content` on success, or `error` on failure.
+    """
+    # Determine tools dir (allow override via env var for testing)
+    tools_dir = os.environ.get("BPFTRACE_TOOLS_DIR", os.path.join(os.path.dirname(__file__), "tools"))
+    tools_dir_abs = os.path.abspath(tools_dir)
+
+    # Candidate README names to try if none provided (includes common misspelling fallback)
+    if readme_name:
+        candidates = [readme_name]
+    else:
+        candidates = ["README.md", "README", "READEME", "READEME.md"]
+
+    for name in candidates:
+        requested = os.path.abspath(os.path.normpath(os.path.join(tools_dir_abs, name)))
+        try:
+            if os.path.commonpath([requested, tools_dir_abs]) != tools_dir_abs:
+                # Path traversal or outside tools dir; skip this candidate
+                continue
+        except Exception:
+            continue
+
+        if os.path.exists(requested) and os.path.isfile(requested):
+            try:
+                with open(requested, "r", encoding="utf-8") as fh:
+                    return {"path": requested, "content": fh.read()}
+            except Exception as e:
+                return {"error": f"Failed to read file: {str(e)}"}
+
+    return {"error": f"README not found in {tools_dir_abs}. Tried: {candidates}"}
+
 # --- Main Execution ---
 
 if __name__ == "__main__":
