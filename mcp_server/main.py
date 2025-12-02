@@ -103,6 +103,46 @@ def strace_version():
     except Exception as e:
         return f"An unexpected error occurred: {str(e)}"
 
+
+@mcp.tool
+def ftrace_help():
+    """Returns the help text for `ftrace -h`.
+
+    Many userland wrappers or tooling around ftrace may print help to stderr
+    and exit with a non-zero code. Capture both stdout and stderr and return
+    whichever contains text.
+    """
+    try:
+        result = subprocess.run(["trace-cmd", "-h"], capture_output=True, text=True)
+        output = (result.stdout or "") + (result.stderr or "")
+        if not output:
+            return "ftrace executed but produced no output."
+        return output
+    except FileNotFoundError:
+        return "Error: 'ftrace' command not found. If you mean trace-cmd or another ftrace wrapper, please install or adjust the tool name."
+    except Exception as e:
+        return f"Unexpected error while running ftrace: {str(e)}"
+
+
+@mcp.tool
+def ftrace_version():
+    """Gets the installed ftrace tool's version via `ftrace --version`.
+
+    Different ftrace wrappers vary in where they print version info; capture
+    both stdout and stderr and return any text found. Provide a helpful
+    error message if the command is not present.
+    """
+    try:
+        result = subprocess.run(["trace-cmd", "--version"], capture_output=True, text=True)
+        output = (result.stdout or "") + (result.stderr or "")
+        if not output:
+            return "ftrace executed but produced no output."
+        return output
+    except FileNotFoundError:
+        return "Error: 'ftrace' command not found. If you expect a different binary (e.g. trace-cmd), update the tool or install the appropriate package."
+    except Exception as e:
+        return f"An unexpected error occurred: {str(e)}"
+
 # --- bpftrace Tools ---
 
 @mcp.tool
