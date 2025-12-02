@@ -3,6 +3,7 @@ import subprocess
 import os
 import getpass
 import shlex
+import signal
 
 # Initialize the server
 mcp = FastMCP(name="Tracium MCP Server")
@@ -195,6 +196,79 @@ def bpftrace_help():
         return "Error: 'bpftrace' command not found. Please ensure bpftrace is installed and in your PATH."
     except Exception as e:
         return f"Unexpected error while running bpftrace -h: {str(e)}"
+
+@mcp.tool
+def exec_bpftrace_tool(tool_name: str, args: list[str] = None, timeout: int = 30):
+    """Execute a bpftrace tool script from the local `mcp_server/tools` directory.
+
+    - `tool_name`: filename under the tools dir (e.g. 'example.bt' or 'subdir/example.bt')
+    - `args`: additional args passed to bpftrace after the script path (list)
+    - `timeout`: seconds to wait before killing the process
+
+    Security measures:
+    - Only executes files under the `mcp_server/tools` directory.
+    - Prevents path traversal by resolving absolute paths and checking the commonpath.
+    """
+    if not tool_name:
+        return {"error": "tool_name is required"}
+
+    # Default tools dir: the `tools` folder next to this file (mcp_server/tools)
+    tools_dir = os.environ.get("BPFTRACE_TOOLS_DIR", os.path.join(os.path.dirname(__file__), "tools"))
+    tools_dir_abs = os.path.abspath(tools_dir)
+
+    # Resolve requested path and ensure it's inside the tools directory
+    requested = os.path.abspath(os.path.normpath(os.path.join(tools_dir_abs, tool_name)))
+    try:
+        if os.path.commonpath([requested, tools_dir_abs]) != tools_dir_abs:
+            return {"error": "Invalid tool path (path traversal detected)"}
+    except Exception:
+        return {"error": "Invalid tool path"}
+
+    if not os.path.exists(requested):
+        return {"error": f"Tool not found: {requested}"}
+
+    # Build command: use sudo to run bpftrace (assumes passwordless sudo is configured)
+    cmd = ["sudo", "bpftrace", requested]
+    if args:
+        cmd += [str(a) for a in args]
+
+    # Ensure timeout is an int and reasonable
+    try:
+        timeout = int(timeout)
+    except Exception:
+        timeout = 20
+
+    try:
+        # Start the process in a new session / process group so we can
+        # reliably kill the entire group on timeout (handles sudo children).
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+        try:
+            stdout, stderr = proc.communicate(timeout=timeout)
+            return {
+                "exit_code": proc.returncode,
+                "stdout": stdout,
+                "stderr": stderr,
+            }
+        except subprocess.TimeoutExpired:
+            # Attempt graceful termination of the process group
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+            except Exception:
+                pass
+            # Give it a short moment to exit, then force kill
+            try:
+                stdout, stderr = proc.communicate(timeout=5)
+            except Exception:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except Exception:
+                    pass
+                stdout, stderr = ("", "")
+            return {"error": f"Execution timed out after {timeout}s", "stdout": stdout, "stderr": stderr}
+    except FileNotFoundError:
+        return {"error": "'bpftrace' not found in PATH"}
+    except Exception as e:
+        return {"error": f"Unexpected error: {str(e)}"}
 
 # --- Main Execution ---
 
