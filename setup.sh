@@ -27,7 +27,7 @@ if [ -z "$BPFTRACE_PATH" ]; then
     exit 1
 fi
 
-SUDOERS_FILE="${SUDOERS_DIR}/tracium_allow_tools"
+SUDOERS_FILE="${SUDOERS_DIR}/systracesuite_allow_tools"
 
 # Sudoers rule line
 RULE="${CURRENT_USER} ALL=(root) NOPASSWD: ${BPFTRACE_PATH}"

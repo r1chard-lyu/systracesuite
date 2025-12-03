@@ -1,5 +1,5 @@
-# Tracium
-Tracium is a Model Context Protocol (MCP) server designed to expose Linux tracing and debugging capabilities such as eBPF, bpftrace, perf, ftrace, and syscall tracing to LLMs and autonomous agents.
+# Systracesuite
+Systracesuite is a MCP server designed to expose Linux tracing and debugging capabilities such as eBPF, bpftrace, perf, ftrace, and syscall tracing to LLMs and autonomous agents.
 
 It provides a unified observability interface that enables AI systems to inspect, profile, and debug Linux kernel and user-space behavior through safe, structured MCP tools.
 
@@ -12,7 +12,7 @@ This project contains a simple implementation of a "fastmcp" style server that c
 
 - `mcp_server/main.py`: The main server executable.
 - `requirements.txt`: Contains the required Python packages.
-- `setup.sh`: Setup Tracium's whitelisted tools so they can run with passwordless sudo. The MCP Server cannot trigger the Gemini CLI interactive shell to prompt the user for privilege escalation.
+- `setup.sh`: Setup systracesuite's whitelisted tools so they can run with passwordless sudo. The MCP Server cannot trigger the Gemini CLI interactive shell to prompt the user for privilege escalation.
 
 ## Installation
 
@@ -27,11 +27,11 @@ Quick start
 
 1. Clone the repository and change into the project directory:
     ```bash
-    git clone git@github.com:r1chard-lyu/tracium.git
-    cd tracium
+    git clone git@github.com:r1chard-lyu/systracesuite.git
+    cd systracesuite
     ```
 
-2. Create a virtual environment and install Python dependencies:
+2. Install Python dependencies:
     ```bash
     pip install --upgrade pip
     pip install -r requirements.txt
@@ -42,12 +42,12 @@ Quick start
     sudo ./setup.sh
     ```
 
-4. Register Tracium as an MCP server with your Gemini CLI. Replace `<ABS_PATH_TO_TRACIUM>` with the absolute path to this repository on your machine:
+4. Register systracesuite as an MCP server with your Gemini CLI. Replace `<ABS_PATH_TO_SYSTRACESUITE>` with the absolute path to this repository on your machine:
     ```bash
-    gemini mcp add tracium \
+    gemini mcp add systracesuite \
         --scope user \
         uv run --with fastmcp \
-        fastmcp run <ABS_PATH_TO_TRACIUM>/mcp_server/main.py
+        fastmcp run <ABS_PATH_TO_systracesuite>/mcp_server/main.py
     ```
 
 5. Verify the MCP registration:
@@ -59,7 +59,7 @@ Quick start
     ```text
     Configured MCP servers:
 
-    ✓ tracium: uv run --with fastmcp fastmcp run <ABS_PATH_TO_TRACIUM>/mcp_server/main.py (stdio) - Connected
+    ✓ systracesuite: uv run --with fastmcp fastmcp run <ABS_PATH_TO_systracesuite>/mcp_server/main.py (stdio) - Connected
     ```
 
 # Contributing

@@ -6,7 +6,7 @@ import shlex
 import signal
 
 # Initialize the server
-mcp = FastMCP(name="Tracium MCP Server")
+mcp = FastMCP(name="Systracesuite MCP Server")
 
 # --- Core Tools ---
 
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     import argparse
     import code
 
-    parser = argparse.ArgumentParser(description="Run Tracium MCP Server")
+    parser = argparse.ArgumentParser(description="Run Systracesuite MCP Server")
     parser.add_argument("--shell", action="store_true", help="Start an interactive Python shell with `mcp` available")
     args = parser.parse_args()
 
