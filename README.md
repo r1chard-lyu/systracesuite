@@ -3,10 +3,11 @@ Systracesuite is a MCP server designed to expose Linux tracing and debugging cap
 
 It provides a unified observability interface that enables AI systems to inspect, profile, and debug Linux kernel and user-space behavior through safe, structured MCP tools.
 
+# Architecture
+This project contains a simple implementation of a MCP server that communicates over STDIO using JSON-RPC.
 
-# Python MCP Server (via stdio)
+![Architecture](assets/architecture.png)
 
-This project contains a simple implementation of a "fastmcp" style server that communicates over STDIO using JSON-RPC.
 
 ## Files
 
